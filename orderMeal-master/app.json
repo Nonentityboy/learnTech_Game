@@ -1,17 +1,16 @@
 {
   "pages": [
-   
     "pages/sureInfo/sureInfo",
     "pages/dishes/dishes",
+    "pages/Order/Order",
     "pages/submit/submit",
+    "pages/Search/Search",
     "pages/addAddress/addAddress",
     "pages/test/test",
     "pages/evaluation/evaluation",
     "pages/Comment/Comment",
-    "pages/Order/Order",
     "pages/thePay/thePayOver",
     "pages/thePay/thePay",
-
     "pages/existAddress/existAddress"
   ],
   "window": {

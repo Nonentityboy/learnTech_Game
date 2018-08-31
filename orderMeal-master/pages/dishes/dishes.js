@@ -1,7 +1,7 @@
-const app = getApp()
-
+const app = getApp();
 Page({
   data: {
+    productId:"",
     sortMoudlePraise: true,
     sortMoudlePrice: false,
     currentData: 0,
@@ -12,16 +12,25 @@ Page({
     },
     vegetableClassification: []
   },
-  onLoad: function() {
+  onLoad: function(options) {
     var that = this;
+    var sort = 1;
+    if (this.data.sortMoudlePrice) {
+      sort = 2;
+    }
     wx.request({
       url: 'https://cxd.mynatapp.cc/buyer/product/list',
       method: 'GET',
+      data:{
+        sort: sort
+      },
       header: {
         'content-type': 'text/html'
       },
       success: function (resInfo) {
         var data = resInfo.data.data;
+        console.log(data)
+        console.log(data.length)
         for(let i = 0; i < data.length; i++) {
           console.log(data[i].categoryName);
           var end = that.data.vegetableClassification.some(function(currentValue){
@@ -35,10 +44,12 @@ Page({
               'categoryType': data[i].categoryType,
             });
           }
-          that.data.mealsInfo[data[i].categoryType] = data[i].products
+          that.data.mealsInfo[data[i].categoryType] = data[i].products;
+          console.log(data[i].products)
           for (let j = 0; j < data[i].products.length;j++) {
             that.data.mealOrderInfo[data[i].products[j].productId] = {};
             that.data.mealOrderInfo[data[i].products[j].productId].num = 0;
+            that.data.mealOrderInfo[data[i].products[j].productId].productId = data[i].products[j].productId;
             that.data.mealOrderInfo[data[i].products[j].productId].productName = data[i].products[j].productName;
             that.data.mealOrderInfo[data[i].products[j].productId].productPrice = data[i].products[j].productPrice;
           }
@@ -53,7 +64,25 @@ Page({
         that.setData({
           vegetableClassification: that.data.vegetableClassification
         })
-     
+
+        //页面传参
+        var activeMenuId = that.data.activeMenuId;
+        var mealsInfo = that.data.mealsInfo;
+        var productId = 'Id'+mealsInfo[activeMenuId][0].productId;
+       
+        if (options.keywords) {
+          console.log('keywords', options.keywords);
+          productId = 'Id'+options.keywords;
+          //更改activeMenuId的值
+          let activeMenuId = that.getActiveMenuIdByProductId(productId)
+
+          that.setData({
+            activeMenuId: activeMenuId
+          })
+        }
+        that.setData({
+          productId: productId
+        })
       }
     })
     //获取收获地址
@@ -77,9 +106,22 @@ Page({
       }
     })
   },
+  getActiveMenuIdByProductId: function (productId) {
+    var mealsInfo = this.data.mealsInfo;
+    for(let item in mealsInfo) {
+      let activeMenuId = item;
+      for (let i = 0; i < mealsInfo[activeMenuId].length; i++) {
+        if (productId == 'Id'+mealsInfo[activeMenuId][i].productId) {
+         console.log('相等');
+          return activeMenuId;
+        }
+      }
+    }
+    console.log('不相等');
+  },
   individualMeals: function(event) {
     var id = event.target.id;
-    console.log(id);  
+    console.log(event);  
     var _this = this;
     _this.setData(
       {
@@ -179,18 +221,12 @@ Page({
   },
   //清空购物车
   deleteShopCar: function() {
-    console.log("mealOrderInfo上",this.data.mealOrderInfo);
     for(var item in this.data.mealOrderInfo) {
-        console.log("item", item);
-      console.log("1this.data[item]", this.data.mealOrderInfo[item]);
-        this.data.mealOrderInfo[item] = 0;
-      console.log("2this.data[item]", this.data.mealOrderInfo[item]);
+        this.data.mealOrderInfo[item].num = 0;
       this.setData({
         mealOrderInfo: this.data.mealOrderInfo
       })      
     }
-    console.log("mealOrderInfo下",this.data.mealOrderInfo);
-
     this.setData({
       total: '00.00'   
     })
@@ -198,22 +234,34 @@ Page({
   },
   //商品评价页
   evaluation: function(event) {
+    var productId = event.currentTarget.dataset.in;
+    console.log(event.currentTarget.dataset.in)
     if (event.currentTarget.id != "mealInfoTop") {
       return;
     }
     wx.navigateTo({
-      url: '/pages/evaluation/evaluation',
+      url: '/pages/evaluation/evaluation?productId=' + productId,
     })
   },
   sortTheMoudlePraise: function () {
-    this.setData({
-      sortMoudlePraise: !this.data.sortMoudlePraise,
-    })
-  },
-  sortTheMoudlePrice: function () {
+    if (this.data.sortMoudlePraise) {
+      return;
+    }
     this.setData({
       sortMoudlePrice: !this.data.sortMoudlePrice,
+      sortMoudlePraise: !this.data.sortMoudlePraise
     })
+    this.onLoad({});
+  },
+  sortTheMoudlePrice: function () {
+    if (this.data.sortMoudlePrice) {
+      return;
+    }
+    this.setData({
+      sortMoudlePraise: !this.data.sortMoudlePraise,
+      sortMoudlePrice: !this.data.sortMoudlePrice
+    })
+    this.onLoad({});
   },
   theOrder:function(){
     wx.navigateTo({
@@ -244,9 +292,20 @@ Page({
       } else {
         url =  '../addAddress/addAddress';  
       }
-      wx.navigateTo({
+      wx.reLaunch({
         url: url,
       })
     }
+  },
+  theOrder: function () {
+    wx.navigateTo({
+      url: '../Order/Order',
+    })
+  },
+  Search: function (t) {
+    console.log("搜素");
+    wx.redirectTo({
+      url: "../Search/Search"
+    })
   }
 })

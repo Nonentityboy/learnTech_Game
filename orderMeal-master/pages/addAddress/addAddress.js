@@ -1,17 +1,17 @@
 var app = getApp();
+// 设置订单地址信息 
 Page({
   data: {
-  
   },
   bindCancel: function () {
-    wx.navigateBack({});
+    wx.reLaunch({
+      url: '/pages/submit/submit',
+    })
   },
   fromSubmit: function(e) {
-    // wx.navigateTo({
-    //   url: '/pages/submit/submit',
-    // })
     var value = e.detail.value;
-    if(value.userName == "" || value.userAddress == "" || value.userPhone == "") {
+    // 判断表单是否为空
+    if(value.userName === "" || value.userAddress === "" || value.userPhone === "") {
       wx.showModal({
         content: '请完善信息',
       })

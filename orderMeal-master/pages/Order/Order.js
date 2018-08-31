@@ -1,36 +1,71 @@
 const app = getApp();
+var time = require('../../utils/util.js');
+// 将将后端请求的时间戳转化为事件
 Page({
   data: {
-    orderList: [
-      {
-        restaurantName: "传世排骨汤饭",
-        state: "订单完成",
-        price: "12",
-        date: "2018-08-02",
-        time: "12:29:12",
-        howToDistribute: "酸甜土豆丝 x1酸甜土豆丝 x1酸甜土豆丝 x1酸甜土豆丝 x1酸甜土豆丝 x1",
-        address:"慕课网大厦"
-      },
-    ]
+    products:{
+      //orderId:[{productId, productName}]
+    } 
   },
   onLoad:function(){
-    let userId = app.globalData.userId;
+    // 请求后端数据库，向后端返回本用户的openid,取到订单数据
+    let userOpenid = app.globalData.userOpenid;
+    console.log(userOpenid)
     var that = this;
     wx.request({
-      url: 'https://cxd.mynatapp.cc/buyer/order/detail/' + userId,
+      url: 'https://cxd.mynatapp.cc/buyer/order/' + userOpenid,
       method:'GET',
       header: {
-        'content-type': 'text/html'
+        'content-type': 'application/json'
       },
       success:function(resInfo){
-        console.log(resInfo)
-        var data = resInfo.data.data;
+        console.log("订单详情", resInfo.data.data);
+        var deliveryOrder = resInfo.data.data
+        for (var i = 0; i < resInfo.data.data.length; i++){
+          deliveryOrder[i].deliveryTime = time.formatTimeTwo(resInfo.data.data[i].deliveryTime, 'Y-M-D h:m')
+        }
+        that.setData({
+          orderList: deliveryOrder
+        })
+        for (let i = 0; i < deliveryOrder.length; i++) {
+          that.data.products[deliveryOrder[i].orderId] = [];
+          let orderDetailList = deliveryOrder[i].orderDetailList;
+          for (let j = 0; j < orderDetailList.length; j++) {
+            let product = {};
+            product.productId = orderDetailList[j].productId;
+            product.productName = orderDetailList[j].productName;
+            that.data.products[deliveryOrder[i].orderId].push(product);
+          }
+        }
+        that.setData({
+          products: that.data.products
+        })
+        console.log(that.data.products)
       }
     })
   },
-  goToComment:function(){
-    wx.navigateTo({
-      url: '../Comment/Comment',
+  // 跳转页面到订单首页面
+  orderAgain:function(){
+    wx.reLaunch({
+      url: '../dishes/dishes',
     })
-  }
+  },
+  // 查看评论
+  lookComment: function (event) {
+    let orderId = event.target.id;
+    let productId = this.data.products[orderId][0].productId;
+    console.log(this.data.products[orderId][0].productId)
+    wx.navigateTo({
+      url: '/pages/evaluation/evaluation?productId=' + productId,
+    })
+  },
+  // 点击按钮去评论
+  goToComment:function(event){
+    let orderId = event.target.id;
+    let str = JSON.stringify(this.data.products[orderId])
+    console.log(this.data.products[orderId])
+    wx.navigateTo({
+      url: '../Comment/Comment?jsonStr=' + str + '&orderId=' + orderId,
+    })
+  },
 })

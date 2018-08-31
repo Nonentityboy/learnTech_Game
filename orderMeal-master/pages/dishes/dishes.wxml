@@ -1,15 +1,17 @@
+<!-- 订餐服务首页面 -->
 <view>
-
-  <!--搜素模块-->
+  <!--搜素模块以及订单模块-->
   <view class="searchMoudle">
+    <!-- 订单模块 -->
     <image class="searchorder" bindtap='theOrder' src="../../pic/dingdan.png" alt="订单"></image>
+    <!-- 搜索模块 -->
     <view class="search">
       <image class="searchIcon" src="../../pic/search.png" alt="搜素图标"></image>
-      <input class="searchInput" type="text" placeholder="请输入您需要的菜品名称"></input>
+      <input class="searchInput" bindtouchstart="Search" confirmType="搜索" type="text" placeholder="请输入您需要的菜品名称"></input>
     </view>
   </view>
 
-  <!--排序模块-->
+  <!--排序菜品模块-->
   <view class="sortMoudle" >
     <view class="sortMoudleLeft" bindtap="sortTheMoudlePraise">
       <text style="{{sortMoudlePraise === true  ? 'color:#13BA84;':''}}">好评优先</text>
@@ -47,39 +49,22 @@
   <view class="dishesMoudle">
 
     <!-- 选择菜品菜单模块 -->
-    <scroll-view scroll-y style='height:880rpx' bindtap="individualMeals" class="dishesMoudleLeft">
+    <scroll-view scroll-y wx:key="choiceDishes" style='height:880rpx' bindtap="individualMeals" class="dishesMoudleLeft">
        <view class="single">
-          <view  class="{{activeMenuId == item.categoryType ? 'active' : ''}}" wx:for="{{vegetableClassification}}"  id="{{item.categoryType}}" >{{item.categoryName}}        </view>
+          <view  class="{{activeMenuId == item.categoryType ? 'active' : ''}}" wx:key="choiceMenu" wx:for="{{vegetableClassification}}"  id="{{item.categoryType}}" >{{item.categoryName}}        </view>
        </view>
-      <!-- <view class="single">
-          <view id="single1" class="{{activeMenuId == 'single1' ? 'active' : ''}}">热推辣货</view>
-          <view id="single2" class="{{activeMenuId == 'single2' ? 'active' : ''}}">炒菜</view>
-          <view id="single3" class="{{activeMenuId == 'single3' ? 'active' : ''}}">盖饭</view>
-          <view id="single4" class="{{activeMenuId == 'single4' ? 'active' : ''}}">面条</view>
-          <view id="single5" class="{{activeMenuId == 'single5' ? 'active' : ''}}">饺子</view>
-          <view id="single6" class="{{activeMenuId == 'single6' ? 'active' : ''}}">拌菜</view>
-          <view id="single7" class="{{activeMenuId == 'single7' ? 'active' : ''}}">小吃</view>
-          <view id="single8" class="{{activeMenuId == 'single8' ? 'active' : ''}}">粥</view>
-          <view id="single9" class="{{activeMenuId == 'single9' ? 'active' : ''}}">外加调料</view>
-      </view>
-      <view class="package">
-          <view id="package1" class="{{activeMenuId == 'package1' ? 'active' : ''}}">高血压套餐</view>
-          <view id="package2" class="{{activeMenuId == 'package2' ? 'active' : ''}}">孕妇套餐</view>
-          <view id="package3" class="{{activeMenuId == 'package3' ? 'active' : ''}}">高血糖套餐</view>
-          <view id="package4" class="{{activeMenuId == 'package4' ? 'active' : ''}}">流食套餐</view>
-      </view> -->
-    </scroll-view>
 
+    </scroll-view>
     <!-- 菜品详情板块 -->
-    <view class="dishesMoudleRight">
-      <scroll-view scroll-y wx:for="{{mealsInfo[activeMenuId]}}" class="mealInfo">
-        <view  bindtap='evaluation' id='mealInfoTop' class="mealInfoTop">
+    <scroll-view style='height:880rpx' scroll-y scroll-into-view="{{productId}}" class="dishesMoudleRight">
+      <view id='Id{{item.productId}}' wx:key="ChoiceMoudle" wx:for="{{mealsInfo[activeMenuId]}}" class="mealInfo">
+        <view  bindtap='evaluation' data-in="{{item.productId}}" id='mealInfoTop' class="mealInfoTop">
           <image class="mealPic" src="{{item.productIcon}}" alt="食物"></image>
           <view class="info">
             <text class="mealName">{{item.productName}}</text>
             <view class="star">             
-              <image class="starImage" src="../../pic/star.png" alt="星星"></image>
-              <image class="starImage" src="../../pic/star.png" alt="星星"></image>
+              <image wx:for="{{item.productScore}}" wx:key="item.productScore" class="starImage" src="../../pic/star.png" alt="星星"></image>
+              <image wx:for="{{5-item.productScore}}" wx:key="5-item.productScore" class="starImage" src="../../pic/badStar.png" alt="星星"></image>
             </view>
             <text class="sale">月销量：<text>{{item.productSales}}</text></text>
           </view>
@@ -95,18 +80,19 @@
               <image id='{{item.productId}}' bindtap='addmeal' class="signImage" src="../../pic/sign.png" alt="加号"></image>
             </view>
         </view>
-      </scroll-view> 
-    </view>   
+      </view>
+    </scroll-view>   
   </view>
+  
   <!--购物车和支付模块-->
   <view class="buyMoudle">
     <view  bindtap="clickme" class="buyMoudleCar">
         <image wx:if="{{total != 0}}" class="shopCar" src="../../pic/shopCarHave.png" alt="购物车"></image>
         <image wx:if="{{total == 0}}" class="shopCar" src="../../pic/shopCar.png" alt="购物车"></image>
         <text class="totalMoney">￥{{total}} </text>|
-        <text class="startingCondition">差 ￥<text class="poorMoney">2</text>起送</text>
+        <text class="startingCondition">{{total>=2?'免费配送':'￥2以上起送'}}</text>
     </view>
-    <view bindtap='thePayIt' class="buyMoudleCalculation" >
+    <view bindtap='thePayIt' class="buyMoudleCalculation">
       去结算
     </view>
   </view>
